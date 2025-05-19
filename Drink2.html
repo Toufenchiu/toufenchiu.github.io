@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>飲料外送排程隨機選擇</title>
+<style>
+  body {
+    font-family: "微軟正黑體", Arial, sans-serif;
+    max-width: 600px;
+    margin: 1rem auto;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    color: #333;
+  }
+  h1, h2 {
+    text-align: center;
+  }
+  #today-date {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 0.8rem;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+  button {
+    display: block;
+    margin: 1rem auto;
+    padding: 0.7rem 1.4rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: none;
+    background-color: #2d89ef;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #155ab6;
+  }
+  form {
+    max-width: 400px;
+    margin: 1rem auto;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  input[type="text"] {
+    flex: 1 1 250px;
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  @media (max-width: 400px) {
+    th, td {
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    button {
+      font-size: 1rem;
+      padding: 0.6rem 1rem;
+    }
+    input[type="text"] {
+      flex: 1 1 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>每週飲料外送排程</h1>
+<div id="today-date"></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>星期</th>
+      <th>飲料店家</th>
+    </tr>
+  </thead>
+  <tbody id="schedule-body">
+    <tr><td>星期一</td><td id="day1">-</td></tr>
+    <tr><td>星期二</td><td id="day2">-</td></tr>
+    <tr><td>星期三</td><td id="day3">-</td></tr>
+    <tr><td>星期四</td><td id="day4">-</td></tr>
+    <tr><td>星期五</td><td id="day5">-</td></tr>
+  </tbody>
+</table>
+
+<button id="randomize-btn">隨機選擇本週飲料店家</button>
+
+<h2>新增飲料店家</h2>
+<form id="add-store-form">
+  <input type="text" id="new-store-input" placeholder="輸入飲料店名稱" required />
+  <button type="submit">新增</button>
+</form>
+
+<script>
+  const stores = [
+    "再睡5分鐘",
+    "八曜和茶",
+    "一沐日",
+    "京茶山",
+    "可不可",
+    "鹿角巷 THE ALLEY",
+    "珍煮丹",
+    "老賴茶棧",
+    "清心福全",
+    "功夫茶 Kung Fu Tea",
+    "茶湯會",
+    "50嵐",
+    "CoCo都可",
+    "迷客夏 Milkshop"
+  ];
+
+  // 顯示今天日期（格式：西元 年 月 日 星期幾）
+  function showTodayDate() {
+    const now = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    const todayStr = now.toLocaleDateString('zh-TW', options);
+    document.getElementById('today-date').textContent = `今天日期：${todayStr}`;
+  }
+
+  // 隨機選5家且不重複
+  function getRandomSchedule() {
+    const copyStores = [...stores];
+    const result = [];
+
+    for(let i = 0; i < 5; i++) {
+      if (copyStores.length === 0) break;
+      const idx = Math.floor(Math.random() * copyStores.length);
+      result.push(copyStores[idx]);
+      copyStores.splice(idx, 1);
+    }
+    return result;
+  }
+
+  // 更新表格
+  function updateSchedule() {
+    const schedule = getRandomSchedule();
+    for(let i=1; i<=5; i++) {
+      document.getElementById(`day${i}`).textContent = schedule[i-1] || "-";
+    }
+  }
+
+  // 新增店家
+  document.getElementById('add-store-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('new-store-input');
+    const newStore = input.value.trim();
+    if(newStore === "") {
+      alert("請輸入飲料店名稱！");
+      return;
+    }
+    if(stores.includes(newStore)) {
+      alert("此店家已存在！");
+      input.value = "";
+      return;
+    }
+    stores.push(newStore);
+    input.value = "";
+    alert(`已新增店家：${newStore}`);
+  });
+
+  // 綁定按鈕事件
+  document.getElementById("randomize-btn").addEventListener("click", updateSchedule);
+
+  // 頁面載入時執行
+  showTodayDate();
+  updateSchedule();
+
+</script>
+
+</body>
+</html>
