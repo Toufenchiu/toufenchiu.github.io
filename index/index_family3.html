@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>露營專用各家付錢計算器</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; }
+    .family-input { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    input[type="number"] { width: 80px; margin-right: 10px; }
+    input[type="text"] { width: 180px; margin-right: 10px; }
+    label { margin-right: 5px; }
+    button { margin: 10px 10px 20px 0; padding: 6px 12px; }
+    .result, .ranking { margin-top: 20px; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 600px;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    h3 { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h2>露營專用各家付錢計算器</h2>
+  <div id="families">
+    <!-- 預設四個家庭 -->
+    <div class="family-input">
+      <label>名稱：<input type="text" placeholder="輸入家庭名稱" value="頭份姓邱" /></label><br />
+      <label>營位費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      <label>食材費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      <label>其他費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+    </div>
+
+    <div class="family-input">
+      <label>名稱：<input type="text" placeholder="輸入家庭名稱" value="頭份姓唐" /></label><br />
+      <label>營位費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      <label>食材費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      <label>其他費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+    </div>
+
+    <div class="family-input">
+      <label>名稱：<input type="text" placeholder="輸入家庭名稱" value="頭份姓陳" /></label><br />
+      <label>營位費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      <label>食材費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      <label>其他費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+    </div>
+
+    <div class="family-input">
+      <label>名稱：<input type="text" placeholder="輸入家庭名稱" value="頭份姓黃" /></label><br />
+      <label>營位費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      <label>食材費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      <label>其他費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+    </div>
+
+    <button id="addFamily">新增家庭</button>
+    <button id="calculate">計算</button>
+
+    <div class="result" id="result"></div>
+    <div class="ranking" id="ranking"></div>
+  </div>
+
+  <script>
+    const familiesDiv = document.getElementById('families');
+    const addBtn = document.getElementById('addFamily');
+    const calculateBtn = document.getElementById('calculate');
+    const resultDiv = document.getElementById('result');
+    const rankingDiv = document.getElementById('ranking');
+
+    addBtn.addEventListener('click', () => {
+      const count = familiesDiv.querySelectorAll('.family-input').length + 1;
+      const div = document.createElement('div');
+      div.className = 'family-input';
+      div.innerHTML = `
+        <label>名稱：<input type="text" placeholder="輸入家庭名稱" value="" /></label><br />
+        <label>營位費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+        <label>食材費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+        <label>其他費用（整數）：<input type="number" min="0" step="1" value="0" /></label>
+      `;
+      familiesDiv.insertBefore(div, addBtn);
+    });
+
+    calculateBtn.addEventListener('click', () => {
+      const familyInputs = familiesDiv.querySelectorAll('.family-input');
+      let total = 0;
+      let families = [];
+
+      familyInputs.forEach((div, index) => {
+        const nameInput = div.querySelector('input[type="text"]');
+        const campInput = div.querySelectorAll('input[type="number"]')[0];
+        const foodInput = div.querySelectorAll('input[type="number"]')[1];
+        const otherInput = div.querySelectorAll('input[type="number"]')[2];
+
+        let name = nameInput.value.trim() || `家庭${index + 1}`;
+        let camp = parseInt(campInput.value, 10);
+        let food = parseInt(foodInput.value, 10);
+        let other = parseInt(otherInput.value, 10);
+
+        if (isNaN(camp) || camp < 0) camp = 0;
+        if (isNaN(food) || food < 0) food = 0;
+        if (isNaN(other) || other < 0) other = 0;
+
+        const sum = camp + food + other;
+        total += sum;
+        families.push({ name, camp, food, other, amount: sum });
+      });
+
+      const familyCount = families.length;
+      const average = total / familyCount;
+
+      let lessPayFamilies = [];
+      let morePayFamilies = [];
+
+      families.forEach(fam => {
+        const diff = fam.amount - average;
+        if (diff < 0) {
+          lessPayFamilies.push({ name: fam.name, diff: -diff });
+        } else if (diff > 0) {
+          morePayFamilies.push({ name: fam.name, diff: diff });
+        }
+      });
+
+      let output = `<p>總金額：${total} 元</p>`;
+      output += `<p>家庭數：${familyCount} 戶</p>`;
+      output += `<p>平均每戶應付：${average.toFixed(2)} 元</p>`;
+
+      if (lessPayFamilies.length === 0) {
+        output += '<p>所有家庭都付足額或多付。</p>';
+      } else {
+        output += '<h3>少付錢家庭應補交金額：</h3><ul>';
+        lessPayFamilies.forEach(fam => {
+          output += `<li>${fam.name} 需多付 ${fam.diff.toFixed(2)} 元</li>`;
+        });
+        output += '</ul>';
+
+        output += '<h3>多付錢家庭應收取金額：</h3><ul>';
+        morePayFamilies.forEach(fam => {
+          output += `<li>${fam.name} 應收取 ${fam.diff.toFixed(2)} 元</li>`;
+        });
+        output += '</ul>';
+      }
+
+      resultDiv.innerHTML = output;
+
+      // 付出金額排行榜（依付出金額由多到少排序）
+      let rankingOutput = '<h3>付出金額排行榜</h3>';
+      rankingOutput += `<table><thead><tr><th>排名</th><th>家庭名稱</th><th>營位費用</th><th>食材費用</th><th>其他費用</th><th>總計</th></tr></thead><tbody>`;
+
+      families
+        .sort((a, b) => b.amount - a.amount)
+        .forEach((fam, idx) => {
+          rankingOutput += `<tr>
+            <td>${idx + 1}</td>
+            <td>${fam.name}</td>
+            <td>${fam.camp} 元</td>
+            <td>${fam.food} 元</td>
+            <td>${fam.other} 元</td>
+            <td>${fam.amount} 元</td>
+          </tr>`;
+        });
+
+      rankingOutput += '</tbody></table>';
+
+      rankingDiv.innerHTML = rankingOutput;
+    });
+  </script>
+</body>
+</html>
